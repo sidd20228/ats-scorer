@@ -9,7 +9,7 @@ const config = {
   // CORS configuration
   corsOrigins: {
     development: 'http://localhost:3000',
-    production: ['https://aiatsscorer1.netlify.app']
+    production: ['https://aiatsscorer.netlify.app']
   },
   
   // Upload configuration
