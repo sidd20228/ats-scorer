@@ -292,6 +292,7 @@ Generated on: ${new Date().toLocaleDateString()}
               accept=".pdf"
               onChange={handleFileChange}
               className="file-input"
+              onClick={(e) => e.stopPropagation()}
             />
             <p>{resume ? resume.name : 'Drop your resume here or click to upload'}</p>
             <small style={{ opacity: 0.7 }}>Accepts PDF format</small>
@@ -426,13 +427,13 @@ Generated on: ${new Date().toLocaleDateString()}
           </div>
 
           <div className="social-links">
-            <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="social-link">
+            <a href="https://github.com/sidd20228" target="_blank" rel="noopener noreferrer" className="social-link">
               {React.createElement(FaGithub as React.ComponentType<IconBaseProps>, { size: 24 })}
             </a>
             <a href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener noreferrer" className="social-link">
               {React.createElement(FaLinkedin as React.ComponentType<IconBaseProps>, { size: 24 })}
             </a>
-            <a href="https://twitter.com/yourusername" target="_blank" rel="noopener noreferrer" className="social-link">
+            <a href="https://twitter.com/Siddhant11810" target="_blank" rel="noopener noreferrer" className="social-link">
               {React.createElement(FaTwitter as React.ComponentType<IconBaseProps>, { size: 24 })}
             </a>
           </div>
