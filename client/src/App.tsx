@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // Example job roles for autocomplete
@@ -26,6 +26,42 @@ const JOB_ROLE_SUGGESTIONS = [
   'Marketing Specialist',
 ];
 
+// Mock requirement matches for demonstration
+const MOCK_REQUIREMENT_MATCHES = [
+  { requirement: 'JavaScript/TypeScript Experience', score: 85 },
+  { requirement: 'React.js Development', score: 92 },
+  { requirement: 'Node.js Backend Development', score: 78 },
+  { requirement: 'Database Management (SQL/NoSQL)', score: 65 },
+  { requirement: 'Cloud Services (AWS/Azure)', score: 45 },
+  { requirement: 'CI/CD Pipeline Experience', score: 30 },
+  { requirement: 'Agile/Scrum Methodology', score: 88 },
+  { requirement: 'System Architecture Design', score: 72 },
+];
+
+// Mock AI suggestions for demonstration
+const MOCK_SUGGESTIONS = `1. Skills Enhancement:
+   • Add more details about your cloud computing experience
+   • Highlight specific AWS/Azure services you've worked with
+   • Include CI/CD tools you're familiar with
+
+2. Experience Optimization:
+   • Quantify your achievements with metrics
+   • Add more technical details about your projects
+   • Include specific technologies used in each role
+
+3. Formatting Improvements:
+   • Use consistent bullet points
+   • Add more white space between sections
+   • Include relevant certifications
+
+4. Keywords to Add:
+   • Microservices
+   • Docker
+   • Kubernetes
+   • RESTful APIs
+   • GraphQL
+   • Test-Driven Development`;
+
 interface RequirementMatch {
   requirement: string;
   score: number;
@@ -41,10 +77,13 @@ function App() {
   const [jobRoleSuggestions, setJobRoleSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [requirementMatches, setRequirementMatches] = useState<RequirementMatch[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
+      setError('');
     }
   };
 
@@ -82,6 +121,13 @@ function App() {
     setShowSuggestions(false);
   };
 
+  const handleDemoClick = () => {
+    setShowDemo(true);
+    setScore(78);
+    setSuggestions(MOCK_SUGGESTIONS);
+    setRequirementMatches(MOCK_REQUIREMENT_MATCHES);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -93,6 +139,7 @@ function App() {
       return;
     }
     setLoading(true);
+    setIsAnalyzing(true);
     const formData = new FormData();
     formData.append('resume', resume);
     formData.append('jobRole', jobRole);
@@ -110,9 +157,74 @@ function App() {
         setError(data.error || 'Failed to score resume.');
       }
     } catch (err) {
-      setError('Server error.');
+      setError('Server error. Please try again later.');
     }
     setLoading(false);
+    setIsAnalyzing(false);
+  };
+
+  const handleDownloadReport = () => {
+    if (!score || !suggestions || !requirementMatches.length) return;
+
+    // Create report content
+    const reportContent = `
+ATS Score Report
+===============
+
+Overall ATS Compatibility Score: ${score}%
+
+Requirement Matches:
+${requirementMatches.map(match => 
+  `- ${match.requirement}: ${match.score}%`
+).join('\n')}
+
+AI Suggestions for Improvement:
+${suggestions}
+
+Generated on: ${new Date().toLocaleDateString()}
+    `.trim();
+
+    // Create blob and download
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ats-score-report-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const handleShareResults = async () => {
+    if (!score || !suggestions || !requirementMatches.length) return;
+
+    const shareData = {
+      title: 'My ATS Score Report',
+      text: `My resume scored ${score}% on ATS compatibility! Check out my detailed report.`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const shareUrl = `mailto:?subject=${encodeURIComponent(shareData.title)}&body=${encodeURIComponent(shareData.text + '\n\n' + shareData.url)}`;
+        window.location.href = shareUrl;
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+      // Fallback to copying to clipboard
+      const textToCopy = `${shareData.text}\n\n${shareData.url}`;
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        alert('Share link copied to clipboard!');
+      } catch (clipboardErr) {
+        console.error('Error copying to clipboard:', clipboardErr);
+        alert('Could not share results. Please try again later.');
+      }
+    }
   };
 
   return (
@@ -162,8 +274,16 @@ function App() {
             </div>
           </div>
         </div>
+
         <form onSubmit={handleSubmit} className="upload-form">
-          <div className="file-input-wrapper" onClick={() => document.getElementById('file-input')?.click()}>
+          <div 
+            className="file-input-wrapper" 
+            onClick={() => document.getElementById('file-input')?.click()}
+            style={{ 
+              borderColor: resume ? '#00C367' : undefined,
+              background: resume ? 'rgba(0, 195, 103, 0.05)' : undefined
+            }}
+          >
             <input
               id="file-input"
               type="file"
@@ -200,16 +320,47 @@ function App() {
             )}
           </div>
           
-          <button type="submit" disabled={loading} className="submit-button">
-            {loading ? 'Analyzing Resume...' : 'Get ATS Score'}
-          </button>
+          <div className="button-group">
+            <button 
+              type="submit" 
+              disabled={loading || !resume || !jobRole} 
+              className="submit-button"
+            >
+              {loading ? (
+                <span>
+                  <span className="loading-dots">Analyzing Resume</span>
+                  <span className="loading-dots">.</span>
+                  <span className="loading-dots">.</span>
+                  <span className="loading-dots">.</span>
+                </span>
+              ) : 'Get ATS Score'}
+            </button>
+            <button 
+              type="button" 
+              onClick={handleDemoClick}
+              className="demo-button"
+              disabled={loading || showDemo}
+            >
+              Try Demo
+            </button>
+          </div>
         </form>
 
         {error && <div className="error-message">{error}</div>}
         
-        {score !== null && (
+        {isAnalyzing && (
+          <div className="analyzing-overlay">
+            <div className="analyzing-content">
+              <div className="analyzing-spinner"></div>
+              <p>Analyzing your resume...</p>
+            </div>
+          </div>
+        )}
+        
+        {(score !== null || showDemo) && (
           <div className="results-container">
             <div className="score">{score}%</div>
+            <div className="score-label">ATS Compatibility Score</div>
             
             {requirementMatches.length > 0 && (
               <div className="requirements-section">
@@ -234,8 +385,27 @@ function App() {
               </div>
             )}
             
-            <div className="suggestions-title">AI Suggestions to Improve Your Score:</div>
-            <div className="suggestions-text">{suggestions}</div>
+            <div className="suggestions-section">
+              <div className="suggestions-title">AI Suggestions to Improve Your Score:</div>
+              <div className="suggestions-text">{suggestions}</div>
+            </div>
+
+            <div className="action-buttons">
+              <button 
+                className="action-button download-button"
+                onClick={handleDownloadReport}
+                disabled={!score && !showDemo}
+              >
+                Download Report
+              </button>
+              <button 
+                className="action-button share-button"
+                onClick={handleShareResults}
+                disabled={!score && !showDemo}
+              >
+                Share Results
+              </button>
+            </div>
           </div>
         )}
       </header>
