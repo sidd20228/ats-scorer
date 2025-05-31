@@ -12,11 +12,13 @@ const app = express();
 const upload = multer({ dest: path.join(__dirname, '../uploads') });
 const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
-// Configure CORS for production
+// Configure CORS for all origins
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-netlify-app.netlify.app'] 
-    : 'http://localhost:3000'
+  origin: ['https://aiatsscorer1.netlify.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
 
