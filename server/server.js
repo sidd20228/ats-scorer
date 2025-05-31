@@ -14,7 +14,7 @@ const cohere = new CohereClient({ token: process.env.COHERE_API_KEY });
 
 // Configure CORS for all origins
 app.use(cors({
-  origin: ['https://aiatsscorer1.netlify.app', 'http://localhost:3000'],
+  origin: ['https://aiatsscorer.netlify.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
