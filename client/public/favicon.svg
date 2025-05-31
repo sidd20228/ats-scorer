@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#1A1A1A"/>
+  
+  <!-- Document Icon -->
+  <path d="M160 128H352C361.941 128 370 136.059 370 146V366C370 375.941 361.941 384 352 384H160C150.059 384 142 375.941 142 366V146C142 136.059 150.059 128 160 128Z" fill="#00C367"/>
+  
+  <!-- Checkmark -->
+  <path d="M208 256L240 288L304 224" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Score Circle -->
+  <circle cx="256" cy="256" r="200" stroke="#00C367" stroke-width="16" stroke-dasharray="4 4"/>
+</svg> 
